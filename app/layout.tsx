@@ -11,6 +11,14 @@ const notoSansKR = Noto_Sans_KR({
 export const metadata: Metadata = {
   title: "부동산 세금 계산기",
   description: "취득세, 양도소득세, 보유세, 증여세, 상속세 등 부동산 관련 세금 계산기. 2025년 세법 기준.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "세금계산기",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
