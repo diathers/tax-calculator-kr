@@ -30,9 +30,8 @@ function formatPeriod(months: number) {
 }
 
 const ADJ_OPTIONS = [
-  { v: true as boolean | null, label: "네, 조정대상지역이었어요" },
-  { v: false as boolean | null, label: "아니요, 해당 없었어요" },
-  { v: null, label: "잘 모르겠어요 (조정대상지역으로 계산)" },
+  { v: true as boolean | null, label: "네, 조정대상지역이에요" },
+  { v: false as boolean | null, label: "아니오, 조정대상지역이 아니에요" },
 ]
 
 export default function CapitalGainsFlowPage() {

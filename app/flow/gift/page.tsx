@@ -130,8 +130,7 @@ export default function GiftFlowPage() {
         <div className="space-y-2">
           {[
             { v: true as boolean | null, label: "네, 조정대상지역이에요" },
-            { v: false as boolean | null, label: "아니요, 해당 없어요" },
-            { v: null, label: "잘 모르겠어요 (조정대상지역으로 계산)" },
+            { v: false as boolean | null, label: "아니오, 조정대상지역이 아니에요" },
           ].map(({ v, label }) => (
             <button key={String(v)} onClick={() => store.set({ isAdjustmentArea: v })}
               className={`w-full rounded-xl border-2 px-4 py-3.5 text-left font-medium text-sm transition-all ${

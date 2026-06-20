@@ -10,9 +10,8 @@ interface Props {
 }
 
 const OPTIONS: { value: AreaChoice; label: string; desc: string }[] = [
-  { value: true, label: "조정대상지역", desc: "서울 전역, 과천, 성남분당 등 고시 지역" },
-  { value: false, label: "비조정대상지역", desc: "조정대상지역 외 지역" },
-  { value: null, label: "모르겠어요", desc: "조정대상지역 기준으로 계산 (보수적 기준)" },
+  { value: true, label: "네, 조정대상지역이에요", desc: "서울 전역, 과천, 성남분당 등 고시 지역" },
+  { value: false, label: "아니오, 조정대상지역이 아니에요", desc: "조정대상지역 외 지역" },
 ]
 
 export function Step3AdjustmentArea({ value, onChange, onNext, onBack }: Props) {
@@ -40,25 +39,6 @@ export function Step3AdjustmentArea({ value, onChange, onNext, onBack }: Props) 
           </button>
         ))}
       </div>
-
-      {value === null && (
-        <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
-          <p>
-            조정대상지역은 세율에 큰 영향을 미칩니다. 국토교통부 실거래가 공개시스템에서 확인할 수 있어요.
-          </p>
-          <p className="text-xs text-amber-600">
-            ※ 모르겠어요 선택 시 조정대상지역 기준(보수적)으로 계산하며, 결과 화면에 안내 문구가 표시됩니다.
-          </p>
-          <a
-            href="https://www.molit.go.kr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-xs font-medium text-blue-600 underline hover:text-blue-800"
-          >
-            국토교통부 조정대상지역 고시 확인하기 →
-          </a>
-        </div>
-      )}
 
       <div className="flex gap-3">
         <button

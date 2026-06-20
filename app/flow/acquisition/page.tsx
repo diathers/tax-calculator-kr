@@ -132,14 +132,12 @@ export default function AcquisitionFlowPage() {
     <>
     <StepShell step={displayStep} total={displayTotal}
       title="이 주택이 있는 곳은 조정대상지역인가요?"
-      hint="잘 모르겠으면 '조정대상지역'으로 계산하세요 (보수적 기준)"
       canNext={true} onNext={next} onPrev={prev}
     >
       <div className="space-y-2">
         {[
           { v: true, label: "네, 조정대상지역이에요" },
-          { v: false, label: "아니요, 해당 없어요" },
-          { v: null, label: "잘 모르겠어요 (조정대상지역으로 계산)" },
+          { v: false, label: "아니오, 조정대상지역이 아니에요" },
         ].map(({ v, label }) => (
           <button key={String(v)} onClick={() => store.set({ isAdjustmentArea: v })}
             className={`w-full rounded-xl border-2 px-4 py-3.5 text-left font-medium text-sm transition-all ${
@@ -152,7 +150,7 @@ export default function AcquisitionFlowPage() {
           </button>
         ))}
         {/* 일시적 2주택 (매매 2주택+조정) */}
-        {store.acquisitionType === "매매" && store.homeCount === 2 && (store.isAdjustmentArea ?? true) && (
+        {store.acquisitionType === "매매" && store.homeCount === 2 && (store.isAdjustmentArea === true) && (
           <div className="mt-3 pt-3 border-t border-gray-100">
             <label className="flex items-start gap-2.5 cursor-pointer">
               <input type="checkbox"

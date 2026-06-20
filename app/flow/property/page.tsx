@@ -87,7 +87,7 @@ export default function PropertyFlowPage() {
         <div className="flex gap-2">
           {[
             { v: true, label: "네, 조정대상지역이에요" },
-            { v: false, label: "아니요, 해당 없어요" },
+            { v: false, label: "아니오, 조정대상지역이 아니에요" },
           ].map(({ v, label }) => (
             <button key={String(v)} onClick={() => store.set({ isAdjustmentArea: v })}
               className={`flex-1 py-4 rounded-xl border-2 font-semibold text-sm transition-all ${
