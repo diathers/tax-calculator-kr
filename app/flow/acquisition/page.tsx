@@ -22,7 +22,7 @@ const ACQ_TYPES: { value: AcqType; label: string; desc: string }[] = [
   { value: "매매", label: "매매", desc: "일반 부동산 매입" },
   { value: "상속", label: "상속", desc: "사망에 의한 취득" },
   { value: "증여", label: "증여", desc: "무상으로 받는 경우" },
-  { value: "신축", label: "신축 (원시취득)", desc: "직접 지어서 취득" },
+  { value: "신축", label: "신축 (원시취득)", desc: "재개발, 재건축 완공" },
 ]
 
 const HOME_COUNTS: { value: AcqHomeCount; label: string }[] = [
