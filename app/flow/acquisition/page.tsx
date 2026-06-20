@@ -206,8 +206,8 @@ export default function AcquisitionFlowPage() {
         </p>
         <div className="space-y-2">
           {([
-            { v: "1주택" as DonorHomeCount, label: "1주택", desc: "증여자 포함 1세대가 1주택 보유 → 3.5% 적용" },
-            { v: "2주택이상" as DonorHomeCount, label: "2주택 이상", desc: "증여자 포함 1세대가 2주택 이상 보유 → 12% 중과 적용" },
+            { v: "1주택" as DonorHomeCount, label: "1주택", desc: "증여자 기준 1세대가 1주택 보유 → 3.5% 적용" },
+            { v: "2주택이상" as DonorHomeCount, label: "2주택 이상", desc: "증여자 기준 1세대가 2주택 이상 보유 → 12% 중과 적용" },
           ] as { v: DonorHomeCount; label: string; desc: string }[]).map(({ v, label, desc }) => (
             <button key={v} onClick={() => store.set({ donorHomeCount: v })}
               className={`w-full rounded-xl border-2 px-4 py-3.5 text-left transition-all ${
