@@ -82,6 +82,7 @@ export function calculateAcquisitionTax(input: AcquisitionTaxInput): Acquisition
     isDivorceSplit = false,
     isInheritanceSpecial = false,
     acquisitionDate,
+    donorHomeCount,
     isFirstTimeEver = false,
   } = input
 
@@ -104,10 +105,18 @@ export function calculateAcquisitionTax(input: AcquisitionTaxInput): Acquisition
     } else {
       const refPrice = officialPrice > 0 ? officialPrice : acquisitionPrice
       const isHeavy = isAdjustmentArea && refPrice >= 300_000_000
-      mainRate = isHeavy ? 0.12 : 0.035
-      rateLabel = isHeavy
-        ? "증여 중과 12% (조정대상지역·공시가 3억↑)"
-        : "증여 일반 3.5%"
+      if (!isHeavy) {
+        mainRate = 0.035
+        rateLabel = "증여 일반 3.5%"
+      } else if (donorHomeCount === "2주택이상") {
+        // 조정대상지역 + 공시가 3억↑ + 증여자 2주택 이상 → 12% 중과
+        mainRate = 0.12
+        rateLabel = "증여 중과 12% (조정대상지역·공시가 3억↑·증여자 2주택 이상)"
+      } else {
+        // 증여자 1세대 1주택이면 조정+3억 이상이어도 3.5% 예외
+        mainRate = 0.035
+        rateLabel = "증여 일반 3.5% (증여자 1세대 1주택 예외)"
+      }
     }
   } else if (acquisitionType === "신축") {
     mainRate = 0.028

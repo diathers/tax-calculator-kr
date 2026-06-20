@@ -30,6 +30,7 @@ export default function AcquisitionResultPage() {
     acquisitionType, homeCount, isAdjustmentArea, acquisitionPrice,
     officialPrice, exclusiveArea, isTemporary2House, isFirstTimeBuyer,
     isBirthRelated, isInheritanceSpecial, isDivorceSplit, acquisitionDate,
+    donorHomeCount,
   } = store
 
   const hcNum = homeCount === "법인" ? 4 : homeCount as 1 | 2 | 3 | 4
@@ -48,14 +49,19 @@ export default function AcquisitionResultPage() {
     isInheritanceSpecial,
     isDivorceSplit,
     acquisitionDate: acquisitionDate || undefined,
+    donorHomeCount: donorHomeCount ?? undefined,
   })
 
   // 입력 요약 배지
   const badges: string[] = []
   badges.push(acquisitionType)
-  if (acquisitionType === "매매" || acquisitionType === "증여") {
+  if (acquisitionType === "매매") {
     badges.push(homeCount === "법인" ? "법인" : `${homeCount}주택`)
     badges.push(isAdjustmentArea ? "조정대상지역" : isAdjustmentArea === false ? "비조정" : "조정대상지역(추정)")
+  }
+  if (acquisitionType === "증여") {
+    badges.push(isAdjustmentArea ? "조정대상지역" : isAdjustmentArea === false ? "비조정" : "조정대상지역(추정)")
+    if (donorHomeCount) badges.push(`증여자 ${donorHomeCount}`)
   }
   if (isTemporary2House) badges.push("일시적2주택")
   if (exclusiveArea > 0) badges.push(`전용 ${exclusiveArea}㎡`)

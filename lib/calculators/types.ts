@@ -23,6 +23,7 @@ export interface AcquisitionTaxInput {
   isDivorceSplit?: boolean       // 이혼 재산분할 취득
   isInheritanceSpecial?: boolean // 상속 1가구1주택 특례 (0.8%)
   acquisitionDate?: string       // 취득일 (신고납부 기한 계산)
+  donorHomeCount?: "1주택" | "2주택이상" // 증여자 주택 수 (조정+3억 이상 시 중과 판단)
   // 하위 호환
   isFirstTimeEver?: boolean
   isNewlywed?: boolean

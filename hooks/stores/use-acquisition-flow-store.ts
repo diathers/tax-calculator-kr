@@ -2,6 +2,7 @@ import { create } from "zustand"
 
 export type AcqType = "매매" | "상속" | "증여" | "신축"
 export type AcqHomeCount = 1 | 2 | 3 | 4 | "법인"
+export type DonorHomeCount = "1주택" | "2주택이상"
 
 interface AcquisitionFlowState {
   acquisitionType: AcqType
@@ -16,6 +17,7 @@ interface AcquisitionFlowState {
   isInheritanceSpecial: boolean
   isDivorceSplit: boolean
   acquisitionDate: string
+  donorHomeCount: DonorHomeCount | null
 }
 
 interface AcquisitionFlowStore extends AcquisitionFlowState {
@@ -36,6 +38,7 @@ const init: AcquisitionFlowState = {
   isInheritanceSpecial: false,
   isDivorceSplit: false,
   acquisitionDate: "",
+  donorHomeCount: null,
 }
 
 export const useAcquisitionFlowStore = create<AcquisitionFlowStore>((s) => ({

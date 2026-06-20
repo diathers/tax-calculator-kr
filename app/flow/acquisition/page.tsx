@@ -15,7 +15,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { StepShell } from "@/components/flow/step-shell"
 import { KoreanNumberInput } from "@/components/inputs/korean-number-input"
-import { useAcquisitionFlowStore, type AcqType, type AcqHomeCount } from "@/hooks/stores/use-acquisition-flow-store"
+import { useAcquisitionFlowStore, type AcqType, type AcqHomeCount, type DonorHomeCount } from "@/hooks/stores/use-acquisition-flow-store"
 import { ScreenIdBadge } from "@/components/dev/screen-id-badge"
 
 const ACQ_TYPES: { value: AcqType; label: string; desc: string }[] = [
@@ -33,19 +33,23 @@ const HOME_COUNTS: { value: AcqHomeCount; label: string }[] = [
   { value: "법인", label: "법인" },
 ]
 
-// step 번호: 1~7
-// 상속/신축은 2(주택수), 3(조정), 5(공시가) 건너뜀
-// 증여는 5(공시가) 있음, 7(감면) 없음
-// 매매만 7(감면/취득일) 있음
-type RawStep = 1 | 2 | 3 | 4 | 5 | 6 | 7
+// step 번호: 1~8
+// 8 = 증여자 주택 수 (조정대상지역 + 3억 이상일 때만 노출)
+// 증여 경로: 1(유형)→3(조정)→4(가격)→[8(증여자주택수)]→6(면적)→7(추가)
+// 매매 경로: 1→2(수증자주택수)→3(조정)→4(가격)→6(면적)→7(추가)
+// 상속/신축은 단순 경로
+type RawStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 
-function visibleSteps(type: AcqType, hc: AcqHomeCount, isAdj: boolean | null): RawStep[] {
-  if (type === "상속") return [1, 4, 6, 7]   // 유형→가격→면적→감면(상속특례)
-  if (type === "신축") return [1, 4, 6]       // 유형→가격→면적(optional)
-  if (type === "증여") return [1, 2, 3, 4, 5, 6]  // 유형→주택수→조정→가격→공시가→면적
+function visibleSteps(type: AcqType, hc: AcqHomeCount, isAdj: boolean | null, price: number = 0): RawStep[] {
+  if (type === "상속") return [1, 4, 6, 7]
+  if (type === "신축") return [1, 4, 6]
+  if (type === "증여") {
+    // 조정대상지역이면서 3억 이상이면 증여자 주택 수 질문 추가
+    const needsDonorCount = isAdj === true && price >= 300_000_000
+    return needsDonorCount ? [1, 3, 4, 8, 6, 7] : [1, 3, 4, 6, 7]
+  }
   // 매매
-  const steps: RawStep[] = [1, 2, 3, 4, 6, 7]
-  return steps
+  return [1, 2, 3, 4, 6, 7]
 }
 
 export default function AcquisitionFlowPage() {
@@ -53,7 +57,7 @@ export default function AcquisitionFlowPage() {
   const store = useAcquisitionFlowStore()
   const [rawStep, setRawStep] = useState<RawStep>(1)
 
-  const visible = visibleSteps(store.acquisitionType, store.homeCount, store.isAdjustmentArea)
+  const visible = visibleSteps(store.acquisitionType, store.homeCount, store.isAdjustmentArea, store.acquisitionPrice)
   const visIdx = visible.indexOf(rawStep)
   const displayStep = visIdx + 1
   const displayTotal = visible.length
@@ -70,7 +74,7 @@ export default function AcquisitionFlowPage() {
 
   const priceMeta: Record<AcqType, { label: string; hint: string }> = {
     매매: { label: "거래 금액 (매매가)", hint: "계약서상 매매가액을 입력해주세요" },
-    증여: { label: "증여재산 가액 (시가인정액)", hint: "시가 기준으로 입력하세요. 시가를 모를 경우 기준시가(공시가격) 사용" },
+    증여: { label: "공시가격 (기준시가)", hint: "공시가격을 입력하세요. 조정대상지역 + 공시가 3억 이상 여부를 판단하는 기준입니다." },
     상속: { label: "취득가액 (시가 또는 공시가격)", hint: "시가를 모를 경우 공시가격을 입력하셔도 됩니다" },
     신축: { label: "시가표준액 (과세표준)", hint: "사용승인일 당시 시가표준액을 입력해주세요" },
   }
@@ -187,6 +191,38 @@ export default function AcquisitionFlowPage() {
         />
       </StepShell>
       <ScreenIdBadge id="SCR-A4" />
+    </>
+  )
+
+  // 증여 조건부: 증여자 주택 수 (조정대상지역 + 공시가 3억 이상일 때만 노출)
+  if (rawStep === 8) return (
+    <>
+      <StepShell step={displayStep} total={displayTotal}
+        title="증여자(부모, 조부모, 배우자)가 보유한 주택은 몇 채인가요?"
+        canNext={store.donorHomeCount !== null} onNext={next} onPrev={prev}
+      >
+        <p className="text-sm text-gray-500 -mt-1 mb-3">
+          증여대상 주택을 포함하여 증여자가 속한 1세대의 주택 수 기준입니다. 분양권, 조합원입주권도 포함될 수 있어요.
+        </p>
+        <div className="space-y-2">
+          {([
+            { v: "1주택" as DonorHomeCount, label: "1주택", desc: "증여자 포함 1세대가 1주택 보유 → 3.5% 적용" },
+            { v: "2주택이상" as DonorHomeCount, label: "2주택 이상", desc: "증여자 포함 1세대가 2주택 이상 보유 → 12% 중과 적용" },
+          ] as { v: DonorHomeCount; label: string; desc: string }[]).map(({ v, label, desc }) => (
+            <button key={v} onClick={() => store.set({ donorHomeCount: v })}
+              className={`w-full rounded-xl border-2 px-4 py-3.5 text-left transition-all ${
+                store.donorHomeCount === v
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <p className="font-semibold text-sm text-gray-900">{label}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+            </button>
+          ))}
+        </div>
+      </StepShell>
+      <ScreenIdBadge id="SCR-A8-gift" />
     </>
   )
 
