@@ -111,7 +111,7 @@ export default function AcquisitionFlowPage() {
     <>
       <StepShell step={displayStep} total={displayTotal}
         title="이 주택을 취득하면 몇 채가 되나요?"
-        hint={`취득 후 1세대(본인·배우자·같은 세대원) 주택 수 기준입니다.\n분양권·조합원입주권도 포함될 수 있어요.`}
+        hint={`취득 후 1세대(본인, 배우자, 같은 세대원) 주택 수 기준입니다, 분양권, 조합원입주권, 주거용 오피스텔은 주택 수에 포함됩니다.`}
         canNext={true} onNext={next} onPrev={prev}
       >
         <div className="grid grid-cols-2 gap-2">
