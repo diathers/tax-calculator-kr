@@ -30,7 +30,6 @@ const HOME_COUNTS: { value: AcqHomeCount; label: string }[] = [
   { value: 2, label: "2주택" },
   { value: 3, label: "3주택" },
   { value: 4, label: "4주택 이상" },
-  { value: "법인", label: "법인" },
 ]
 
 // step 번호: 1~9
