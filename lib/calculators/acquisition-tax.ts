@@ -162,11 +162,14 @@ export function calculateAcquisitionTax(input: AcquisitionTaxInput): Acquisition
   let discountReason = ""
   let discountRuralTax = 0
 
-  if (firstTime && acquisitionType === "매매" && homeCountAfter === 1) {
+  // 생애최초·출산양육 감면: 취득가액 12억 이하 + 해당 주택 취득으로 1가구 1주택 요건 (지특법)
+  const GAMYEON_PRICE_LIMIT = 1_200_000_000
+  const eligiblePrice = acquisitionPrice <= GAMYEON_PRICE_LIMIT
+  if (firstTime && acquisitionType === "매매" && homeCountAfter === 1 && eligiblePrice) {
     discount = Math.min(acquisitionTax, 2_000_000)
     discountReason = "생애최초 주택 취득 감면"
     discountRuralTax = Math.floor(discount * 0.2)
-  } else if (isBirthRelated && acquisitionType === "매매") {
+  } else if (isBirthRelated && acquisitionType === "매매" && homeCountAfter === 1 && eligiblePrice) {
     discount = Math.min(acquisitionTax, 5_000_000)
     discountReason = "출산·양육 주택 취득 감면"
     discountRuralTax = Math.floor(discount * 0.2)

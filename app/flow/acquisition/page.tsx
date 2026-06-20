@@ -33,20 +33,23 @@ const HOME_COUNTS: { value: AcqHomeCount; label: string }[] = [
 ]
 
 // step 번호: 1~9
+// 4 = 취득가액(매매·상속·신축) / 증여는 시가인정액(과세표준)
+// 5 = 공시가격(시가표준액) — 증여 중과(조정+3억) 판단용
 // 8 = 증여자 주택 수 (조정+3억 이상일 때만 노출)
 // 9 = 상속 후 주택 수 (상속 경로 전용)
-// 증여 경로: 1(유형)→3(조정)→4(가격)→[8(증여자주택수)]→6(면적)→7(추가)
+// 증여 경로: 1(유형)→3(조정)→4(시가인정액)→5(공시가격)→[8(증여자주택수)]→6(면적)→7(추가)
 // 매매 경로: 1→2(주택수)→3(조정)→4(가격)→6(면적)→7(추가)
 // 상속 경로: 1→4(가격)→6(면적)→9(상속후주택수)
 type RawStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
-function visibleSteps(type: AcqType, hc: AcqHomeCount, isAdj: boolean | null, price: number = 0): RawStep[] {
+function visibleSteps(type: AcqType, isAdj: boolean | null, acquisitionPrice: number = 0, officialPrice: number = 0): RawStep[] {
   if (type === "상속") return [1, 4, 6, 9]
   if (type === "신축") return [1, 4, 6]
   if (type === "증여") {
-    // 조정대상지역이면서 3억 이상이면 증여자 주택 수 질문 추가
-    const needsDonorCount = isAdj === true && price >= 300_000_000
-    return needsDonorCount ? [1, 3, 4, 8, 6, 7] : [1, 3, 4, 6, 7]
+    // 중과(12%) 판단은 시가표준액(공시가격) 기준. 미입력 시 시가인정액으로 갈음
+    const refPrice = officialPrice > 0 ? officialPrice : acquisitionPrice
+    const needsDonorCount = isAdj === true && refPrice >= 300_000_000
+    return needsDonorCount ? [1, 3, 4, 5, 8, 6, 7] : [1, 3, 4, 5, 6, 7]
   }
   // 매매
   return [1, 2, 3, 4, 6, 7]
@@ -57,7 +60,7 @@ export default function AcquisitionFlowPage() {
   const store = useAcquisitionFlowStore()
   const [rawStep, setRawStep] = useState<RawStep>(1)
 
-  const visible = visibleSteps(store.acquisitionType, store.homeCount, store.isAdjustmentArea, store.acquisitionPrice)
+  const visible = visibleSteps(store.acquisitionType, store.isAdjustmentArea, store.acquisitionPrice, store.officialPrice)
   const visIdx = visible.indexOf(rawStep)
   const displayStep = visIdx + 1
   const displayTotal = visible.length
@@ -74,7 +77,7 @@ export default function AcquisitionFlowPage() {
 
   const priceMeta: Record<AcqType, { label: string; hint: string }> = {
     매매: { label: "거래 금액 (매매가)", hint: "계약서상 매매가액을 입력해주세요" },
-    증여: { label: "공시가격 (기준시가)", hint: "공시가격을 입력하세요. 조정대상지역 + 공시가 3억 이상 여부를 판단하는 기준입니다." },
+    증여: { label: "시가인정액 (과세표준)", hint: "매매사례가액·감정가액 등 시가로 인정되는 금액을 입력하세요. 증여 취득세의 과세표준입니다. 시가를 알 수 없으면 공시가격을 입력해도 됩니다." },
     상속: { label: "취득가액 (공시가격)", hint: "시가가 아닌 공시가격을 입력합니다" },
     신축: { label: "과세표준", hint: "총 공사비를 면적별로 안분한 가액을 입력해주세요. 단, '22.12.31. 이전 관리처분계획인가를 받은 재개발 구역은 추가분담금을 입력해주세요." },
   }
@@ -235,7 +238,7 @@ export default function AcquisitionFlowPage() {
     <>
       <StepShell step={displayStep} total={displayTotal}
         title="이 주택을 취득하면 몇 채가 되나요?"
-        hint={`취득 후 1세대(본인, 배우자, 같은 세대원) 주택 수 기준입니다.\n분양권, 조합원입주권도 포함될 수 있어요.`}
+        hint={`취득 후 1세대(본인, 배우자, 같은 세대원) 주택 수 기준입니다.\n상속 1가구 1주택 특례(0.8%) 판단 시 분양권, 조합원입주권(멸실 후), 주거용 오피스텔은 주택 수에서 제외합니다.`}
         canNext={store.inheritanceHomeCount !== null} onNext={next} onPrev={prev}
         nextLabel="계산하기"
       >
@@ -273,7 +276,7 @@ export default function AcquisitionFlowPage() {
           label="공시가격 (기준시가)"
           value={store.officialPrice}
           onChange={(v) => store.set({ officialPrice: v })}
-          helpText="입력하지 않으면 취득가액 기준으로 판단합니다"
+          helpText="입력하지 않으면 시가인정액 기준으로 판단합니다"
         />
         {store.isAdjustmentArea !== false && (store.officialPrice || store.acquisitionPrice) >= 300_000_000 && (
           <div className="mt-2 rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-xs text-orange-700">
@@ -382,7 +385,7 @@ export default function AcquisitionFlowPage() {
               />
               <div>
                 <p className="text-sm font-semibold text-gray-800">생애최초 주택 취득</p>
-                <p className="text-xs text-gray-500">취득가 제한 없음 · 최대 200만원 감면</p>
+                <p className="text-xs text-gray-500">취득가 12억원 이하 · 최대 200만원 감면</p>
               </div>
             </label>
 
@@ -397,25 +400,10 @@ export default function AcquisitionFlowPage() {
               />
               <div>
                 <p className="text-sm font-semibold text-gray-800">출산·양육 주택 취득</p>
-                <p className="text-xs text-gray-500">자녀 출산·양육 목적 취득 · 최대 500만원 감면</p>
+                <p className="text-xs text-gray-500">취득가 12억원 이하·1가구 1주택 · 최대 500만원 감면</p>
               </div>
             </label>
           </>
-        )}
-
-        {/* 출산양육 (매매 2주택 이상도 가능) */}
-        {store.acquisitionType === "매매" && store.homeCount !== 1 && (
-          <label className="flex items-start gap-2.5 cursor-pointer rounded-xl border border-gray-200 px-3 py-2.5">
-            <input type="checkbox"
-              checked={store.isBirthRelated}
-              onChange={(e) => store.set({ isBirthRelated: e.target.checked })}
-              className="mt-0.5 w-4 h-4 accent-blue-600"
-            />
-            <div>
-              <p className="text-sm font-semibold text-gray-800">출산·양육 주택 취득</p>
-              <p className="text-xs text-gray-500">자녀 출산·양육 목적 취득 · 최대 500만원 감면</p>
-            </div>
-          </label>
         )}
 
       </div>

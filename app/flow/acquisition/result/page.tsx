@@ -140,8 +140,8 @@ export default function AcquisitionResultPage() {
             <div className="space-y-1.5 text-sm text-emerald-700">
               {result.acquisitionType === "매매" && (
                 <>
-                  <p>· <span className="font-medium">생애최초 취득 감면</span>: 최대 200만원 (취득가 제한 없음)</p>
-                  <p>· <span className="font-medium">출산·양육 감면</span>: 최대 500만원</p>
+                  <p>· <span className="font-medium">생애최초 취득 감면</span>: 최대 200만원 (취득가 12억원 이하)</p>
+                  <p>· <span className="font-medium">출산·양육 감면</span>: 최대 500만원 (취득가 12억원 이하·1가구 1주택)</p>
                   <p className="text-xs text-emerald-600">위 조건에 해당하시면 이전 단계에서 선택해 주세요</p>
                 </>
               )}
