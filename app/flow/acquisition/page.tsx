@@ -136,7 +136,10 @@ export default function AcquisitionFlowPage() {
     <>
     <StepShell step={displayStep} total={displayTotal}
       title="이 주택이 있는 곳은 조정대상지역인가요?"
-      hint="잔금지급일 기준 조정대상지역 해당여부를 선택합니다. 단, 조정대상지역으로 지정되기 전 매매계약을 체결하고 조정대상지역으로 지정된 후 잔금을 지급한 경우 조정대상지역이 아닌 경우로 선택합니다."
+      hint={store.acquisitionType === "증여"
+        ? "증여계약일 기준 조정대상지역 해당여부를 선택합니다."
+        : "잔금지급일 기준 조정대상지역 해당여부를 선택합니다. 단, 조정대상지역으로 지정되기 전 매매계약을 체결하고 조정대상지역으로 지정된 후 잔금을 지급한 경우 조정대상지역이 아닌 경우로 선택합니다."
+      }
       canNext={true} onNext={next} onPrev={prev}
     >
       <div className="space-y-2">
