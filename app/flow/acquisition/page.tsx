@@ -15,7 +15,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { StepShell } from "@/components/flow/step-shell"
 import { KoreanNumberInput } from "@/components/inputs/korean-number-input"
-import { useAcquisitionFlowStore, type AcqType, type AcqHomeCount, type DonorHomeCount } from "@/hooks/stores/use-acquisition-flow-store"
+import { useAcquisitionFlowStore, type AcqType, type AcqHomeCount, type DonorHomeCount, type InheritanceHomeCount } from "@/hooks/stores/use-acquisition-flow-store"
 import { ScreenIdBadge } from "@/components/dev/screen-id-badge"
 
 const ACQ_TYPES: { value: AcqType; label: string; desc: string }[] = [
@@ -33,15 +33,16 @@ const HOME_COUNTS: { value: AcqHomeCount; label: string }[] = [
   { value: "법인", label: "법인" },
 ]
 
-// step 번호: 1~8
-// 8 = 증여자 주택 수 (조정대상지역 + 3억 이상일 때만 노출)
+// step 번호: 1~9
+// 8 = 증여자 주택 수 (조정+3억 이상일 때만 노출)
+// 9 = 상속 후 주택 수 (상속 경로 전용)
 // 증여 경로: 1(유형)→3(조정)→4(가격)→[8(증여자주택수)]→6(면적)→7(추가)
-// 매매 경로: 1→2(수증자주택수)→3(조정)→4(가격)→6(면적)→7(추가)
-// 상속/신축은 단순 경로
-type RawStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+// 매매 경로: 1→2(주택수)→3(조정)→4(가격)→6(면적)→7(추가)
+// 상속 경로: 1→4(가격)→6(면적)→9(상속후주택수)
+type RawStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 function visibleSteps(type: AcqType, hc: AcqHomeCount, isAdj: boolean | null, price: number = 0): RawStep[] {
-  if (type === "상속") return [1, 4, 6, 7]
+  if (type === "상속") return [1, 4, 6, 9]
   if (type === "신축") return [1, 4, 6]
   if (type === "증여") {
     // 조정대상지역이면서 3억 이상이면 증여자 주택 수 질문 추가
@@ -223,6 +224,37 @@ export default function AcquisitionFlowPage() {
         </div>
       </StepShell>
       <ScreenIdBadge id="SCR-A8-gift" />
+    </>
+  )
+
+  // 상속 전용: 상속 후 주택 수 (세율 구분)
+  if (rawStep === 9) return (
+    <>
+      <StepShell step={displayStep} total={displayTotal}
+        title="이 주택을 취득하면 몇 채가 되나요?"
+        hint={`취득 후 1세대(본인, 배우자, 같은 세대원) 주택 수 기준입니다.\n분양권, 조합원입주권도 포함될 수 있어요.`}
+        canNext={store.inheritanceHomeCount !== null} onNext={next} onPrev={prev}
+        nextLabel="계산하기"
+      >
+        <div className="space-y-2">
+          {([
+            { v: "1주택" as InheritanceHomeCount, label: "1주택", desc: "상속으로 1세대 1주택이 되는 경우 → 0.8% 적용" },
+            { v: "2주택이상" as InheritanceHomeCount, label: "2주택 이상", desc: "상속 후 2주택 이상 보유 → 2.8% 적용" },
+          ] as { v: InheritanceHomeCount; label: string; desc: string }[]).map(({ v, label, desc }) => (
+            <button key={v} onClick={() => store.set({ inheritanceHomeCount: v, isInheritanceSpecial: v === "1주택" })}
+              className={`w-full rounded-xl border-2 px-4 py-3.5 text-left transition-all ${
+                store.inheritanceHomeCount === v
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <p className="font-semibold text-sm text-gray-900">{label}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+            </button>
+          ))}
+        </div>
+      </StepShell>
+      <ScreenIdBadge id="SCR-A9-inheritance" />
     </>
   )
 

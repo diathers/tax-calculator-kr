@@ -46,7 +46,9 @@ export default function AcquisitionResultPage() {
     isTemporary2House,
     isFirstTimeBuyer,
     isBirthRelated,
-    isInheritanceSpecial,
+    isInheritanceSpecial: acquisitionType === "상속"
+      ? store.inheritanceHomeCount === "1주택"
+      : isInheritanceSpecial,
     isDivorceSplit,
     acquisitionDate: acquisitionDate || undefined,
     donorHomeCount: donorHomeCount ?? undefined,
