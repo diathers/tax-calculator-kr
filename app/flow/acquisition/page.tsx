@@ -42,17 +42,17 @@ const HOME_COUNTS: { value: AcqHomeCount; label: string }[] = [
 // 상속 경로: 1→4(가격)→6(면적)→9(상속후주택수)
 type RawStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
-function visibleSteps(type: AcqType, isAdj: boolean | null, acquisitionPrice: number = 0, officialPrice: number = 0): RawStep[] {
+function visibleSteps(type: AcqType, isAdj: boolean | null, acquisitionPrice: number = 0, officialPrice: number = 0, homeCount: number | string = 1): RawStep[] {
   if (type === "상속") return [1, 4, 6, 9]
   if (type === "신축") return [1, 4, 6]
   if (type === "증여") {
     // 중과(12%) 판단은 시가표준액(공시가격) 기준. 미입력 시 시가인정액으로 갈음
     const refPrice = officialPrice > 0 ? officialPrice : acquisitionPrice
     const needsDonorCount = isAdj === true && refPrice >= 300_000_000
-    return needsDonorCount ? [1, 3, 4, 5, 8, 6, 7] : [1, 3, 4, 5, 6, 7]
+    return needsDonorCount ? [1, 3, 4, 5, 8, 6] : [1, 3, 4, 5, 6]
   }
-  // 매매
-  return [1, 2, 3, 4, 6, 7]
+  // 매매 — SCR-A7(추가정보)는 1주택일 때만 감면 선택지가 있어 노출
+  return homeCount === 1 ? [1, 2, 3, 4, 6, 7] : [1, 2, 3, 4, 6]
 }
 
 export default function AcquisitionFlowPage() {
@@ -60,7 +60,7 @@ export default function AcquisitionFlowPage() {
   const store = useAcquisitionFlowStore()
   const [rawStep, setRawStep] = useState<RawStep>(1)
 
-  const visible = visibleSteps(store.acquisitionType, store.isAdjustmentArea, store.acquisitionPrice, store.officialPrice)
+  const visible = visibleSteps(store.acquisitionType, store.isAdjustmentArea, store.acquisitionPrice, store.officialPrice, store.homeCount)
   const visIdx = visible.indexOf(rawStep)
   const displayStep = visIdx + 1
   const displayTotal = visible.length
@@ -269,7 +269,7 @@ export default function AcquisitionFlowPage() {
     <>
       <StepShell step={displayStep} total={displayTotal}
         title="공시가격(기준시가)을 아시나요?"
-        hint="부동산공시가격알리미(realtyprice.kr)에서 확인할 수 있어요.\n증여 취득세 중과 여부 판단에 사용됩니다 (조정대상지역 + 공시가 3억 이상 → 12%)."
+        hint="부동산공시가격알리미(realtyprice.kr)에서 확인할 수 있어요. 증여 취득세 중과 여부 판단에 사용됩니다 (조정대상지역 + 공시가 3억 이상 → 12%)."
         canNext={true} onNext={next} onPrev={prev}
       >
         <KoreanNumberInput
@@ -295,23 +295,24 @@ export default function AcquisitionFlowPage() {
         title="전용면적은 얼마인가요?"
         hint="농어촌특별세 계산에 사용됩니다. 85㎡ 초과 시 0.2% 추가됩니다."
         canNext={true} onNext={next} onPrev={prev}
-        nextLabel={store.acquisitionType === "신축" ? "계산하기" : "다음"}
+        nextLabel={visIdx === visible.length - 1 ? "계산하기" : "다음"}
       >
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">전용면적 (㎡)</label>
-          <input
-            type="number"
-            value={store.exclusiveArea || ""}
-            onChange={(e) => store.set({ exclusiveArea: Number(e.target.value) })}
-            placeholder="예: 84"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          {store.exclusiveArea > 0 && (
-            <p className="text-xs text-gray-400">
-              = {(store.exclusiveArea / 3.3058).toFixed(1)}평
-              {store.exclusiveArea > 85 ? " · 85㎡ 초과 → 농어촌특별세 0.2% 추가" : " · 85㎡ 이하 → 농어촌특별세 없음"}
-            </p>
-          )}
+          {([
+            { v: 85, label: "85㎡ 이하", desc: "농어촌특별세 없음" },
+            { v: 86, label: "85㎡ 초과", desc: "농어촌특별세 0.2% 추가" },
+          ] as { v: number; label: string; desc: string }[]).map(({ v, label, desc }) => (
+            <button key={v} onClick={() => store.set({ exclusiveArea: v })}
+              className={`w-full rounded-xl border-2 px-4 py-3.5 text-left transition-all ${
+                store.exclusiveArea === v
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <p className="font-semibold text-sm text-gray-900">{label}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+            </button>
+          ))}
         </div>
       </StepShell>
       <ScreenIdBadge id="SCR-A6" />
@@ -328,18 +329,6 @@ export default function AcquisitionFlowPage() {
       nextLabel="계산하기"
     >
       <div className="space-y-3">
-
-        {/* 취득일 */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">취득일 (선택)</label>
-          <input
-            type="date"
-            value={store.acquisitionDate}
-            onChange={(e) => store.set({ acquisitionDate: e.target.value })}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <p className="text-xs text-gray-400">입력 시 신고납부 기한을 알려드려요</p>
-        </div>
 
         {/* 상속 특례 */}
         {store.acquisitionType === "상속" && (

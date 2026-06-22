@@ -1,6 +1,9 @@
 import { create } from "zustand"
 
+export type CapGainsPropertyType = "주택" | "분양권" | "조합원입주권"
+
 interface CapitalGainsFlowState {
+  propertyType: CapGainsPropertyType
   acquisitionPrice: number
   salePrice: number
   necessaryExpenses: number
@@ -23,6 +26,7 @@ interface CapitalGainsFlowStore extends CapitalGainsFlowState {
 const today = new Date().toISOString().split("T")[0]
 
 const init: CapitalGainsFlowState = {
+  propertyType: "주택",
   acquisitionPrice: 0,
   salePrice: 0,
   necessaryExpenses: 0,

@@ -254,7 +254,7 @@ export default function WizardResultsPage() {
             )}
             {exclusiveArea > 0 && (
               <span className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">
-                {exclusiveArea}㎡
+                {exclusiveArea > 85 ? "85㎡ 초과" : "85㎡ 이하"}
               </span>
             )}
             <span className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">{adjLabel}</span>

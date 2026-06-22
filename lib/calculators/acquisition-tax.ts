@@ -203,7 +203,7 @@ export function calculateAcquisitionTax(input: AcquisitionTaxInput): Acquisition
   if (area > 85) {
     breakdown.push({ label: "농어촌특별세 (0.2%, 전용 85㎡ 초과)", amount: ruralAreaTax, type: "tax", indent: true })
   } else if (area > 0) {
-    breakdown.push({ label: `농어촌특별세 비과세 (전용 ${area}㎡ ≤ 85㎡)`, amount: 0, type: "info" })
+    breakdown.push({ label: "농어촌특별세 비과세 (전용 85㎡ 이하)", amount: 0, type: "info" })
   } else {
     breakdown.push({ label: "농어촌특별세: 전용면적 미입력 (85㎡ 초과 시 0.2%)", amount: 0, type: "info" })
   }

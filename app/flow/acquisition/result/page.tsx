@@ -66,7 +66,7 @@ export default function AcquisitionResultPage() {
     if (donorHomeCount) badges.push(`증여자 ${donorHomeCount}`)
   }
   if (isTemporary2House) badges.push("일시적2주택")
-  if (exclusiveArea > 0) badges.push(`전용 ${exclusiveArea}㎡`)
+  if (exclusiveArea > 0) badges.push(exclusiveArea > 85 ? "전용 85㎡ 초과" : "전용 85㎡ 이하")
 
   const showDiscountSection = !!(result.discount > 0 || result.acquisitionType === "매매")
   const otherDiscounts = result.acquisitionType === "매매" && result.discount === 0
@@ -142,7 +142,6 @@ export default function AcquisitionResultPage() {
                 <>
                   <p>· <span className="font-medium">생애최초 취득 감면</span>: 최대 200만원 (취득가 12억원 이하)</p>
                   <p>· <span className="font-medium">출산·양육 감면</span>: 최대 500만원 (취득가 12억원 이하·1가구 1주택)</p>
-                  <p className="text-xs text-emerald-600">위 조건에 해당하시면 이전 단계에서 선택해 주세요</p>
                 </>
               )}
             </div>

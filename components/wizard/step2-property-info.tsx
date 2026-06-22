@@ -2,8 +2,6 @@
 
 import { KoreanNumberInput } from "@/components/inputs/korean-number-input"
 
-const sqmToPyeong = (sqm: number) => (sqm / 3.3058).toFixed(1)
-
 interface Props {
   propertyPrice: number
   officialPrice: number
@@ -42,21 +40,23 @@ export function Step2PropertyInfo({ propertyPrice, officialPrice, exclusiveArea,
         <label className="text-sm font-medium text-gray-700 block mb-1">
           전용면적 <span className="text-red-500">*</span>
         </label>
-        <div className="relative">
-          <input
-            type="number"
-            value={exclusiveArea || ""}
-            onChange={(e) => onChange({ exclusiveArea: Number(e.target.value) })}
-            placeholder="예) 84"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm pr-10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <span className="absolute right-3 top-2.5 text-sm text-gray-400">㎡</span>
+        <div className="grid grid-cols-2 gap-2">
+          {([
+            { v: 85, label: "85㎡ 이하", desc: "농어촌특별세 없음" },
+            { v: 86, label: "85㎡ 초과", desc: "농어촌특별세 0.2% 추가" },
+          ] as { v: number; label: string; desc: string }[]).map(({ v, label, desc }) => (
+            <button key={v} type="button" onClick={() => onChange({ exclusiveArea: v })}
+              className={`rounded-xl border-2 px-4 py-3 text-left transition-all ${
+                exclusiveArea === v
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <p className="font-semibold text-sm text-gray-900">{label}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+            </button>
+          ))}
         </div>
-        {exclusiveArea > 0 && (
-          <p className="text-xs text-gray-400 mt-1">
-            {exclusiveArea}㎡ ≈ {sqmToPyeong(exclusiveArea)}평
-          </p>
-        )}
       </div>
 
       <div className="flex gap-3">

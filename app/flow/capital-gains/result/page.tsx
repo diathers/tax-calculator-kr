@@ -42,14 +42,16 @@ export default function CapitalGainsResultPage() {
   const holdingMonths = monthsDiff(store.acquisitionDate, store.saleDate)
   const holdingYears = Math.floor(holdingMonths / 12)
 
-  // 비과세 요건 판단
+  const isHousing = store.propertyType === "주택"
+
+  // 비과세 요건 판단 (주택만)
   const meetsHolding = holdingYears >= 2
   const meetsResidence = !(store.isAdjAtAcquisition ?? true) || residenceYears >= 2
-  const couldBeExempt = store.is1H1H && meetsHolding && meetsResidence
+  const couldBeExempt = isHousing && store.is1H1H && meetsHolding && meetsResidence
 
   // 미충족 사유
   const reasons: string[] = []
-  if (store.is1H1H) {
+  if (isHousing && store.is1H1H) {
     if (!meetsHolding) reasons.push(`보유기간 ${formatPeriod(holdingMonths)} (2년 미만)`)
     if (!meetsResidence) reasons.push(`거주기간 ${formatPeriod(residenceMonths)} (2년 미만)`)
   }
@@ -62,8 +64,8 @@ export default function CapitalGainsResultPage() {
           <h1 className="text-lg font-bold text-gray-900">양도소득세 계산 결과</h1>
         </div>
 
-        {/* 비과세 여부 배너 */}
-        {store.is1H1H && (
+        {/* 비과세 여부 배너 (주택만) */}
+        {isHousing && store.is1H1H && (
           <div className={`rounded-xl border px-4 py-3 text-sm font-medium ${
             result.isExempt
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
@@ -119,6 +121,16 @@ export default function CapitalGainsResultPage() {
           )}
         </div>
 
+        {/* 분양권 세율 안내 */}
+        {store.propertyType === "분양권" && (
+          <div className="bg-amber-50 rounded-2xl border border-amber-200 px-5 py-4 space-y-1.5">
+            <p className="text-sm font-semibold text-amber-800">📌 분양권 양도소득세 세율</p>
+            <p className="text-sm text-amber-700">· 보유기간 1년 미만: <span className="font-semibold">70%</span> (지방소득세 포함 77%)</p>
+            <p className="text-sm text-amber-700">· 보유기간 1년 이상: <span className="font-semibold">60%</span> (지방소득세 포함 66%)</p>
+            <p className="text-sm text-amber-700">· 2년 이상 보유해도 60% — <span className="font-semibold">장기보유특별공제 없음</span></p>
+          </div>
+        )}
+
         {/* 산출 근거 */}
         {!result.isExempt && (
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -127,8 +139,8 @@ export default function CapitalGainsResultPage() {
           </div>
         )}
 
-        {/* 다주택 절세 비교 버튼 */}
-        {!store.is1H1H && (
+        {/* 다주택 절세 비교 버튼 (주택만) */}
+        {isHousing && !store.is1H1H && (
           <Link href="/wizard/compare"
             className="block w-full text-center py-3 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 transition-colors"
           >

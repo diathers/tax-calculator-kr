@@ -220,25 +220,24 @@ export default function AcquisitionTaxPage() {
 
         {/* 7. 전용면적 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1">전용면적 (㎡)</label>
-          <input
-            type="number"
-            value={input.exclusiveArea || ""}
-            onChange={(e) => setInput({ exclusiveArea: Number(e.target.value) })}
-            placeholder="예: 84"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          {(input.exclusiveArea ?? 0) > 0 && (
-            <p className="text-xs text-gray-400 mt-1">
-              = {((input.exclusiveArea ?? 0) / 3.3058).toFixed(1)}평
-              {(input.exclusiveArea ?? 0) > 85
-                ? " · 85㎡ 초과 → 농어촌특별세 0.2% 추가"
-                : " · 85㎡ 이하 → 농어촌특별세 없음"}
-            </p>
-          )}
-          {!(input.exclusiveArea ?? 0) && (
-            <p className="text-xs text-gray-400 mt-1">85㎡ 초과 시 농어촌특별세 0.2% 추가됩니다</p>
-          )}
+          <label className="text-sm font-medium text-gray-700 block mb-1">전용면적</label>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { v: 85, label: "85㎡ 이하", desc: "농어촌특별세 없음" },
+              { v: 86, label: "85㎡ 초과", desc: "농어촌특별세 0.2% 추가" },
+            ] as { v: number; label: string; desc: string }[]).map(({ v, label, desc }) => (
+              <button key={v} type="button" onClick={() => setInput({ exclusiveArea: v })}
+                className={`rounded-xl border-2 px-4 py-3 text-left transition-all ${
+                  (input.exclusiveArea ?? 0) === v
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 bg-white hover:border-gray-300"
+                }`}
+              >
+                <p className="font-semibold text-sm text-gray-900">{label}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* 8. 취득일 (선택, 신고기한 계산) */}
